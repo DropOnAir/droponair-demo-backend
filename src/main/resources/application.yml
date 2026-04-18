@@ -1,0 +1,39 @@
+server:
+  port: ${PORT:8180}
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: droponair-demo-backend
+  security:
+    user:
+      # Disable Spring Security auto-generated password noise
+      password: disabled
+  web:
+    cors:
+      allowed-origins: "*"
+
+# ────────────────────────────────────────────────────────────
+# DropOnAir credentials
+# Replace with real values from https://panel.droponair.com
+# or set via environment variables:
+#   DROPONAIR_APP_ID, DROPONAIR_PUBLIC_API_KEY, DROPONAIR_SERVER_SECRET
+# ────────────────────────────────────────────────────────────
+droponair:
+  app-id: ${DROPONAIR_APP_ID:YOUR_APP_ID}
+  public-api-key: ${DROPONAIR_PUBLIC_API_KEY:YOUR_PUBLIC_API_KEY}
+  server-secret: ${DROPONAIR_SERVER_SECRET:YOUR_SERVER_SECRET}
+  sdk-base-url: ${DROPONAIR_SDK_URL:https://sdk.droponair.com}
+
+# Demo-only JWT signing secret (HS256).
+# This is NOT the DropOnAir server secret, it is used only to sign
+# the mock user tokens issued by /api/auth/login in this demo.
+demo:
+  jwt-secret: ${DEMO_JWT_SECRET:demo-super-secret-key-change-in-prod-min-256bits}
+  jwt-expiry-hours: ${DEMO_JWT_EXPIRY_HOURS:24}
+
+logging:
+  level:
+    root: INFO
+    com.example.droponairdemo: DEBUG
