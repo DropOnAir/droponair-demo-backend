@@ -40,26 +40,28 @@ public class TokenExchangeController {
     }
 
     /**
-     * Exchanges the authenticated user's demo JWT for a DropOnAir SDK token.
+     * Exchanges the authenticated user for a DropOnAir SDK token.
      *
-     * The user's JWT is passed as the "customerUserToken" in the signed request
-     * to DropOnAir. DropOnAir uses it to identify the user without ever seeing
-     * the token contents (it trusts the HMAC signature from your server).
-     *
-     * The Authorization header contains the user's own JWT (set by the SDK automatically).
+     * The SDK sends the user's own JWT in the Authorization header; your security
+     * layer validates it and resolves the stable user id. That id is sent as the
+     * "customerUserToken" in the HMAC-signed request to DropOnAir, and DropOnAir
+     * uses it verbatim as the user's identity (it trusts the signature from your
+     * server, never the token contents). Use a stable id here (not the raw JWT),
+     * since this is the value peers address each other by.
      */
     @PostMapping("/token")
     public ResponseEntity<Map<String, Object>> exchangeToken(
-        @RequestHeader("Authorization") String authHeader,
         Authentication authentication
     ) {
         String userId = (String) authentication.getPrincipal();
-        // Pass the raw user JWT as the customer token
-        String userJwt = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
 
         log.debug("stage=token_exchange_request userId={}", userId);
 
-        String droponairToken = tokenService.exchangeToken(userJwt);
+        // Pass the STABLE user id as the customerUserToken. DropOnAir uses this
+        // value verbatim as the user's identity (the relay user_id that peers
+        // address each other by). Sending the raw JWT instead would make every
+        // user_id an opaque token string and break peer addressing (alice <-> bob).
+        String droponairToken = tokenService.exchangeToken(userId);
 
         // Return in the format the SDK expects: { accessToken, expiresIn }
         return ResponseEntity.ok(Map.of(

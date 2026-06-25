@@ -56,14 +56,16 @@ public class DropOnAirTokenService {
             String timestamp = String.valueOf(Instant.now().getEpochSecond());
             String nonce = UUID.randomUUID().toString().replace("-", "");
 
-            // Build JSON body
+            // Build the JSON request body POSTed to the relay.
             String body = objectMapper.writeValueAsString(
                 Map.of("customerUserToken", customerUserToken)
             );
 
-            // Compute SHA-256 of body (Base64-encoded)
+            // IMPORTANT: the relay computes the signed body hash over the customerUserToken VALUE,
+            // not the JSON envelope. The signature must hash the same input, or the relay
+            // returns 401 "Invalid signature".
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            byte[] bodyDigest = sha256.digest(body.getBytes(StandardCharsets.UTF_8));
+            byte[] bodyDigest = sha256.digest(customerUserToken.getBytes(StandardCharsets.UTF_8));
             String bodySha256Base64 = Base64.getEncoder().encodeToString(bodyDigest);
 
             // Compute HMAC-SHA256 signature
